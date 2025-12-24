@@ -9,6 +9,7 @@ import {
   LighterExchange,
   EdgeXExchange,
   ParadexExchange,
+  AsterExchange,
 } from './exchanges/index.js';
 import { computeDepth } from './compute.js';
 
@@ -26,6 +27,7 @@ const ENABLED_EXCHANGES = {
   Lighter: true,
   EdgeX: true,
   Paradex: true,
+  Aster: true,
 };
 
 const FEE_RATES = {
@@ -33,6 +35,7 @@ const FEE_RATES = {
   Lighter: 0,
   EdgeX: 0.00038,
   Paradex: 0,
+  Aster: 0.0004,
 };
 
 const exchanges = new Map();
@@ -272,6 +275,7 @@ async function initExchanges() {
     Lighter: LighterExchange,
     EdgeX: EdgeXExchange,
     Paradex: ParadexExchange,
+    Aster: AsterExchange,
   };
 
   for (const [name, enabled] of Object.entries(ENABLED_EXCHANGES)) {

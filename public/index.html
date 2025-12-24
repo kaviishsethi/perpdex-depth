@@ -21,6 +21,7 @@
       --lt: #ff00ff;
       --ex: #00ff00;
       --px: #ffff00;
+      --as: #ff6600;
       --best: #00ff00;
       --worst: #ff4444;
     }
@@ -262,6 +263,7 @@
     .h-bar-fill.lighter { background: var(--lt); }
     .h-bar-fill.edgex { background: var(--ex); }
     .h-bar-fill.paradex { background: var(--px); }
+    .h-bar-fill.aster { background: var(--as); }
 
     .h-bar-value {
       font-family: 'Space Mono', monospace;
@@ -408,6 +410,7 @@
     .exchange-dot.lighter { background: var(--lt); }
     .exchange-dot.edgex { background: var(--ex); }
     .exchange-dot.paradex { background: var(--px); }
+    .exchange-dot.aster { background: var(--as); }
 
     .best-value {
       color: var(--best) !important;
@@ -720,8 +723,8 @@
     const coins = ['BTC', 'ETH', 'SOL'];
     const bpLevels = [1, 2, 3];
     const tradeSizes = [100, 10000, 1000000];
-    const feeRates = { Hyperliquid: 0.00045, Lighter: 0, EdgeX: 0.00038, Paradex: 0 };
-    const exchanges = ['Hyperliquid', 'Lighter', 'EdgeX', 'Paradex'];
+    const feeRates = { Hyperliquid: 0.00045, Lighter: 0, EdgeX: 0.00038, Paradex: 0, Aster: 0.0004 };
+    const exchanges = ['Hyperliquid', 'Lighter', 'EdgeX', 'Paradex', 'Aster'];
 
     const HISTORY_LENGTH = 30;
     const SPARKLINE_LENGTH = 60;

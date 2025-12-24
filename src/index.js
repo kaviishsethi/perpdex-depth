@@ -3,6 +3,7 @@ import {
   LighterExchange,
   EdgeXExchange,
   ParadexExchange,
+  AsterExchange,
 } from './exchanges/index.js';
 import { computeDepth, formatNumber } from './compute.js';
 
@@ -15,6 +16,7 @@ const ENABLED_EXCHANGES = {
   Lighter: true,
   EdgeX: true,
   Paradex: true,
+  Aster: true,
 };
 
 const exchanges = new Map();
@@ -26,6 +28,7 @@ async function initExchanges() {
     Lighter: LighterExchange,
     EdgeX: EdgeXExchange,
     Paradex: ParadexExchange,
+    Aster: AsterExchange,
   };
 
   for (const [name, enabled] of Object.entries(ENABLED_EXCHANGES)) {
