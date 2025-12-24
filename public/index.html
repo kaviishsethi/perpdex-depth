@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PERP DEPTH</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #000000;
+      --bg-card: #0a0a0a;
+      --border: #1a1a1a;
+      --text: #ffffff;
+      --text-dim: #666666;
+      --text-muted: #333333;
+      --accent: #ffffff;
+      --hl: #00ffff;
+      --lt: #ff00ff;
+      --ex: #00ff00;
+      --px: #ffff00;
+      --best: #00ff00;
+      --worst: #ff4444;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .dashboard {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .status-dot {
+      width: 4px;
+      height: 4px;
+      background: #00ff00;
+      border-radius: 50%;
+    }
+
+    .control-bar {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .control-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .tab {
+      padding: 0.4rem 0.8rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    .tab:hover { border-color: var(--text-dim); color: var(--text); }
+    .tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .card-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .card-subtitle {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .info-btn {
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      font-style: italic;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .info-btn:hover {
+      border-color: var(--text-dim);
+      color: var(--text);
+    }
+
+    .tooltip-wrapper { position: relative; }
+
+    .tooltip {
+      position: absolute;
+      top: 28px;
+      right: 0;
+      width: 320px;
+      background: #111111;
+      border: 1px solid var(--border);
+      padding: 1rem;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .tooltip.active { display: block; }
+
+    .tooltip-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tooltip-section { margin-bottom: 0.75rem; }
+    .tooltip-section:last-child { margin-bottom: 0; }
+
+    .tooltip-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.25rem;
+    }
+
+    .tooltip-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .h-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .h-bar-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 70px;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .h-bar-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-align: right;
+    }
+
+    .h-bar-track {
+      height: 24px;
+      background: var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .h-bar-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .h-bar-fill.hyperliquid { background: var(--hl); }
+    .h-bar-fill.lighter { background: var(--lt); }
+    .h-bar-fill.edgex { background: var(--ex); }
+    .h-bar-fill.paradex { background: var(--px); }
+
+    .h-bar-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text);
+      text-align: right;
+    }
+
+    /* Cost Calculator Section */
+    .cost-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .cost-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .cost-header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .cost-header-left .tabs {
+      margin-left: 0.5rem;
+    }
+
+    .custom-size-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-left: 0.5rem;
+    }
+
+    .custom-size-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .custom-size-input {
+      width: 80px;
+      padding: 0.4rem 0.5rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .custom-size-input:focus {
+      border-color: var(--text-dim);
+    }
+
+    .custom-size-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .custom-size-input.active {
+      border-color: var(--text);
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .section-header {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .cost-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .cost-table th,
+    .cost-table td {
+      padding: 0.75rem 1rem;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cost-table th {
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 400;
+    }
+
+    .cost-table th:first-child,
+    .cost-table td:first-child {
+      text-align: left;
+    }
+
+    .cost-table td {
+      font-size: 0.75rem;
+      color: var(--text);
+    }
+
+    .cost-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .exchange-row {
+      transition: background 0.15s;
+    }
+
+    .exchange-row:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .exchange-row.best-row {
+      background: rgba(0, 255, 0, 0.05);
+    }
+
+    .exchange-row.worst-row {
+      background: rgba(255, 68, 68, 0.05);
+    }
+
+    .exchange-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .exchange-dot {
+      width: 6px;
+      height: 6px;
+    }
+
+    .exchange-dot.hyperliquid { background: var(--hl); }
+    .exchange-dot.lighter { background: var(--lt); }
+    .exchange-dot.edgex { background: var(--ex); }
+    .exchange-dot.paradex { background: var(--px); }
+
+    .best-value {
+      color: var(--best) !important;
+      font-weight: 700;
+    }
+
+    .worst-value {
+      color: var(--worst) !important;
+      font-weight: 700;
+    }
+
+    .cost-value {
+      color: var(--text-dim);
+    }
+
+    .total-value {
+      font-weight: 600;
+    }
+
+    .rank-badge {
+      display: inline-block;
+      font-size: 0.55rem;
+      padding: 0.15rem 0.4rem;
+      margin-left: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .rank-badge.best {
+      background: var(--best);
+      color: #000;
+    }
+
+    .rank-badge.worst {
+      background: var(--worst);
+      color: #000;
+    }
+
+    .rank-badge.partial {
+      background: #f59e0b;
+      color: #000;
+    }
+
+    .partial-row {
+      background: rgba(245, 158, 11, 0.08) !important;
+    }
+
+    .partial-fill {
+      color: #f59e0b !important;
+      font-weight: 600;
+    }
+
+    .rank-cell {
+      font-weight: 700;
+      font-size: 0.85rem;
+      width: 2rem;
+      text-align: center;
+      color: var(--text-dim);
+    }
+
+    .rank-cell.rank-1 {
+      color: var(--best);
+    }
+
+    .rank-cell.rank-last {
+      color: var(--worst);
+    }
+
+    /* Live Cards */
+    .live-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .live-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .exchange-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .exchange-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .exchange-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .exchange-indicator {
+      width: 6px;
+      height: 6px;
+    }
+
+    .exchange-indicator.hyperliquid { background: var(--hl); }
+    .exchange-indicator.lighter { background: var(--lt); }
+    .exchange-indicator.edgex { background: var(--ex); }
+    .exchange-indicator.paradex { background: var(--px); }
+
+    .exchange-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .exchange-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .exchange-spread {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .sparkline {
+      width: 60px;
+      height: 20px;
+    }
+
+    .sparkline-path {
+      fill: none;
+      stroke-width: 1.5;
+    }
+
+    .sparkline-path.hyperliquid { stroke: var(--hl); }
+    .sparkline-path.lighter { stroke: var(--lt); }
+    .sparkline-path.edgex { stroke: var(--ex); }
+    .sparkline-path.paradex { stroke: var(--px); }
+
+    @media (max-width: 900px) {
+      .charts-row { grid-template-columns: 1fr; }
+      .live-grid { grid-template-columns: repeat(2, 1fr); }
+      .control-bar { flex-wrap: wrap; }
+      .tooltip { width: 280px; }
+      .cost-table { font-size: 0.65rem; }
+      .cost-header-left { flex-wrap: wrap; }
+    }
+
+    @media (max-width: 600px) {
+      .live-grid { grid-template-columns: 1fr; }
+      body { padding: 1rem; }
+      .tooltip { width: 240px; right: -50px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <header>
+      <div class="logo">PerpDex Wars</div>
+      <div class="status">
+        <div class="status-dot"></div>
+        <span id="timestamp">--:--:--</span>
+      </div>
+    </header>
+
+    <div class="control-bar">
+      <div class="control-group">
+        <span class="control-label">Asset</span>
+        <div class="tabs" id="coinTabs"></div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Depth</span>
+        <div class="tabs" id="bpTabs"></div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="card-title">Avg Depth</div>
+            <div class="card-subtitle">Last 30 updates</div>
+          </div>
+          <div class="tooltip-wrapper">
+            <button class="info-btn" data-tooltip="depth">i</button>
+            <div class="tooltip" id="tooltip-depth">
+              <div class="tooltip-title">Average Depth</div>
+              <div class="tooltip-section">
+                <div class="tooltip-label">Metric</div>
+                <div class="tooltip-text">Total order book liquidity (bids + asks) within N basis points from the mid price, measured in base asset units.</div>
+              </div>
+              <div class="tooltip-section">
+                <div class="tooltip-label">Methodology</div>
+                <div class="tooltip-text">Sum of all order sizes where price is within ±N BP of mid price. Averaged over the last 30 WebSocket updates (~15 seconds).</div>
+              </div>
+              <div class="tooltip-section">
+                <div class="tooltip-label">Use Case</div>
+                <div class="tooltip-text">Higher depth = more liquidity = lower slippage for large orders. Compare exchanges to find the best execution venue for your trade size.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="h-bars" id="depthBars"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="card-title">Avg Spread</div>
+            <div class="card-subtitle">Last 30 updates</div>
+          </div>
+          <div class="tooltip-wrapper">
+            <button class="info-btn" data-tooltip="spread">i</button>
+            <div class="tooltip" id="tooltip-spread">
+              <div class="tooltip-title">Average Spread</div>
+              <div class="tooltip-section">
+                <div class="tooltip-label">Metric</div>
+                <div class="tooltip-text">The difference between the best ask and best bid price, expressed in basis points (0.01% = 1 BP).</div>
+              </div>
+              <div class="tooltip-section">
+                <div class="tooltip-label">Methodology</div>
+                <div class="tooltip-text">Spread = (Best Ask - Best Bid) / Mid Price × 10,000. Averaged over the last 30 WebSocket updates.</div>
+              </div>
+              <div class="tooltip-section">
+                <div class="tooltip-label">Use Case</div>
+                <div class="tooltip-text">Lower spread = tighter market = lower cost to enter/exit. Critical for high-frequency trading and market making strategies.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="h-bars" id="spreadBars"></div>
+      </div>
+    </div>
+
+    <!-- Execution Cost Calculator -->
+    <div class="cost-section">
+      <div class="cost-header">
+        <div class="cost-header-left">
+          <div class="section-header">Execution Cost</div>
+          <div class="tabs" id="sizeTabs"></div>
+          <div class="custom-size-wrapper">
+            <span class="custom-size-label">$</span>
+            <input type="text" id="customSize" class="custom-size-input" placeholder="Custom" />
+          </div>
+        </div>
+        <div class="tooltip-wrapper">
+          <button class="info-btn" data-tooltip="cost">i</button>
+          <div class="tooltip" id="tooltip-cost">
+            <div class="tooltip-title">Execution Cost</div>
+            <div class="tooltip-section">
+              <div class="tooltip-label">Slippage Calculation</div>
+              <div class="tooltip-text">Buy + Sell averaged over 30 updates. We walk through the orderbook simulating fills. Slippage = (AvgFillPrice - MidPrice) / MidPrice × 10,000 bps.</div>
+            </div>
+            <div class="tooltip-section">
+              <div class="tooltip-label">Fee Calculation</div>
+              <div class="tooltip-text">Fee = Trade Size × Taker Fee Rate. Rates: Hyperliquid 4.5 bps, EdgeX 3.8 bps, Lighter 0 bps, Paradex 0 bps.</div>
+            </div>
+            <div class="tooltip-section">
+              <div class="tooltip-label">Total Cost</div>
+              <div class="tooltip-text">Total = Slippage + Fee in bps. Dollar cost = Trade Size × Total bps / 10,000.</div>
+            </div>
+            <div class="tooltip-section">
+              <div class="tooltip-label">Levels & Depth</div>
+              <div class="tooltip-text">Levels = orderbook price levels traversed. Depth Used = actual $ filled from the book.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <table class="cost-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Exchange</th>
+              <th>Slippage (bps)</th>
+              <th>Fee (bps)</th>
+              <th>Total (bps)</th>
+              <th>Total ($)</th>
+              <th>Depth Used</th>
+              <th>Fill %</th>
+            </tr>
+          </thead>
+          <tbody id="costTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="live-section">
+      <div class="section-header">Live Depth</div>
+      <div class="live-grid" id="liveGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    let data = null;
+    let selectedCoin = 'BTC';
+    let selectedBp = 1;
+    let selectedSize = 10000;
+    let isCustomSize = false;
+    const coins = ['BTC', 'ETH', 'SOL'];
+    const bpLevels = [1, 2, 3];
+    const tradeSizes = [100, 10000, 1000000];
+    const feeRates = { Hyperliquid: 0.00045, Lighter: 0, EdgeX: 0.00038, Paradex: 0 };
+    const exchanges = ['Hyperliquid', 'Lighter', 'EdgeX', 'Paradex'];
+
+    const HISTORY_LENGTH = 30;
+    const SPARKLINE_LENGTH = 60;
+    const history = { depth: {}, spread: {} };
+    const sparklineHistory = {};
+    
+    exchanges.forEach(ex => {
+      history.depth[ex] = [];
+      history.spread[ex] = [];
+      sparklineHistory[ex] = [];
+    });
+
+    // Info button tooltips
+    document.querySelectorAll('.info-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tooltipId = 'tooltip-' + btn.dataset.tooltip;
+        const tooltip = document.getElementById(tooltipId);
+        const isActive = tooltip.classList.contains('active');
+        document.querySelectorAll('.tooltip').forEach(t => t.classList.remove('active'));
+        if (!isActive) tooltip.classList.add('active');
+      });
+    });
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.tooltip').forEach(t => t.classList.remove('active'));
+    });
+
+    function formatNum(n) {
+      if (n === null || n === undefined || isNaN(n)) return '--';
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+      return n.toFixed(2);
+    }
+
+    function formatSize(n) {
+      if (n >= 1e6) return '$' + (n / 1e6).toFixed(0) + 'M';
+      if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+      return '$' + n;
+    }
+
+    function formatBps(n) {
+      if (n === null || n === undefined || isNaN(n)) return '--';
+      return n.toFixed(2) + ' bps';
+    }
+
+    function formatUsd(n) {
+      if (n === null || n === undefined || isNaN(n)) return '--';
+      if (n >= 1000) return '$' + (n / 1000).toFixed(2) + 'K';
+      return '$' + n.toFixed(2);
+    }
+
+    function average(arr) {
+      if (!arr || arr.length === 0) return 0;
+      return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    function initTabs() {
+      const coinContainer = document.getElementById('coinTabs');
+      coinContainer.innerHTML = coins.map(c => 
+        `<button class="tab ${c === selectedCoin ? 'active' : ''}" data-coin="${c}">${c}</button>`
+      ).join('');
+      coinContainer.addEventListener('click', e => {
+        if (e.target.classList.contains('tab')) {
+          selectedCoin = e.target.dataset.coin;
+          document.querySelectorAll('#coinTabs .tab').forEach(t => t.classList.remove('active'));
+          e.target.classList.add('active');
+          clearHistory();
+          render();
+        }
+      });
+
+      const bpContainer = document.getElementById('bpTabs');
+      bpContainer.innerHTML = bpLevels.map(bp => 
+        `<button class="tab ${bp === selectedBp ? 'active' : ''}" data-bp="${bp}">${bp} BP</button>`
+      ).join('');
+      bpContainer.addEventListener('click', e => {
+        if (e.target.classList.contains('tab')) {
+          selectedBp = parseInt(e.target.dataset.bp);
+          document.querySelectorAll('#bpTabs .tab').forEach(t => t.classList.remove('active'));
+          e.target.classList.add('active');
+          clearHistory();
+          render();
+        }
+      });
+
+      const sizeContainer = document.getElementById('sizeTabs');
+      const customInput = document.getElementById('customSize');
+      
+      sizeContainer.innerHTML = tradeSizes.map(size => 
+        `<button class="tab ${size === selectedSize ? 'active' : ''}" data-size="${size}">${formatSize(size)}</button>`
+      ).join('');
+      sizeContainer.addEventListener('click', e => {
+        if (e.target.classList.contains('tab')) {
+          selectedSize = parseInt(e.target.dataset.size);
+          isCustomSize = false;
+          document.querySelectorAll('#sizeTabs .tab').forEach(t => t.classList.remove('active'));
+          customInput.classList.remove('active');
+          customInput.value = '';
+          e.target.classList.add('active');
+          render();
+        }
+      });
+
+      // Custom size input handler
+      customInput.addEventListener('input', e => {
+        const val = e.target.value.replace(/[^0-9]/g, '');
+        e.target.value = val;
+        
+        if (val && parseInt(val) > 0) {
+          selectedSize = parseInt(val);
+          isCustomSize = true;
+          document.querySelectorAll('#sizeTabs .tab').forEach(t => t.classList.remove('active'));
+          customInput.classList.add('active');
+          render();
+        }
+      });
+
+      customInput.addEventListener('focus', () => {
+        if (customInput.value) {
+          document.querySelectorAll('#sizeTabs .tab').forEach(t => t.classList.remove('active'));
+          customInput.classList.add('active');
+        }
+      });
+    }
+
+    function clearHistory() {
+      exchanges.forEach(ex => {
+        history.depth[ex] = [];
+        history.spread[ex] = [];
+        sparklineHistory[ex] = [];
+      });
+    }
+
+    function recordHistory() {
+      if (!data?.current) return;
+
+      exchanges.forEach(ex => {
+        const d = data.current[selectedCoin]?.[ex];
+        const depth = d?.depths?.[selectedBp] || 0;
+        const spread = d?.spread || 0;
+
+        history.depth[ex].push(depth);
+        history.spread[ex].push(spread);
+        sparklineHistory[ex].push(depth);
+
+        if (history.depth[ex].length > HISTORY_LENGTH) history.depth[ex].shift();
+        if (history.spread[ex].length > HISTORY_LENGTH) history.spread[ex].shift();
+        if (sparklineHistory[ex].length > SPARKLINE_LENGTH) sparklineHistory[ex].shift();
+      });
+    }
+
+    function renderHorizontalBars(containerId, getValue, unit = '') {
+      const container = document.getElementById(containerId);
+      
+      const values = exchanges.map(ex => ({
+        exchange: ex,
+        value: getValue(ex),
+        class: ex.toLowerCase()
+      })).sort((a, b) => b.value - a.value);
+
+      const maxVal = Math.max(...values.map(v => v.value), 0.01);
+
+      container.innerHTML = values.map(item => {
+        const pct = (item.value / maxVal) * 100;
+        return `
+          <div class="h-bar-row">
+            <div class="h-bar-label">${item.exchange}</div>
+            <div class="h-bar-track">
+              <div class="h-bar-fill ${item.class}" style="width: ${pct}%"></div>
+            </div>
+            <div class="h-bar-value">${formatNum(item.value)}${unit}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderCostTable() {
+      const container = document.getElementById('costTableBody');
+      if (!data?.executionCosts) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const costs = exchanges.map(ex => {
+        let cost = data.executionCosts[selectedCoin]?.[ex]?.[selectedSize];
+        
+        // For custom sizes not in preset, calculate based on fee + estimate slippage
+        if (!cost && isCustomSize && selectedSize > 0) {
+          // Get baselines at $10K and $1M to interpolate
+          const baseline10k = data.executionCosts[selectedCoin]?.[ex]?.[10000];
+          const baseline1m = data.executionCosts[selectedCoin]?.[ex]?.[1000000];
+          const feeRate = feeRates[ex] || 0;
+          const feeBps = feeRate * 10000;
+          const feeCost = selectedSize * feeRate;
+          
+          // Estimate slippage: scale from baseline (slippage roughly scales with sqrt for larger sizes)
+          let slippageBps = null;
+          let levelsUsed = null;
+          let depthUsedUsd = null;
+          let fillPct = null;
+          
+          if (baseline10k?.slippageBps != null) {
+            const scaleFactor = Math.sqrt(selectedSize / 10000);
+            slippageBps = baseline10k.slippageBps * scaleFactor;
+            
+            // Estimate levels: scales roughly with log of size
+            if (baseline10k.levelsUsed != null && baseline1m?.levelsUsed != null) {
+              const logRatio = Math.log10(selectedSize / 10000) / Math.log10(1000000 / 10000);
+              levelsUsed = Math.round(baseline10k.levelsUsed + (baseline1m.levelsUsed - baseline10k.levelsUsed) * logRatio);
+            } else if (baseline10k.levelsUsed != null) {
+              levelsUsed = Math.round(baseline10k.levelsUsed * scaleFactor);
+            }
+            
+            // Estimate fill %: interpolate between baselines
+            if (baseline10k.fillPct != null && baseline1m?.fillPct != null) {
+              const sizeRatio = (selectedSize - 10000) / (1000000 - 10000);
+              fillPct = baseline10k.fillPct + (baseline1m.fillPct - baseline10k.fillPct) * sizeRatio;
+              fillPct = Math.max(0, Math.min(100, fillPct)); // Clamp 0-100
+            } else if (baseline10k.fillPct != null) {
+              // Estimate: fill % decreases as size increases beyond available depth
+              const maxDepth = baseline10k.depthUsedUsd ? baseline10k.depthUsedUsd / (baseline10k.fillPct / 100) * 100 : null;
+              fillPct = maxDepth ? Math.min(100, (maxDepth / selectedSize) * 100) : 100;
+            }
+            
+            // Depth used = trade size * fill %
+            depthUsedUsd = selectedSize * (fillPct || 100) / 100;
+          }
+          
+          if (slippageBps !== null) {
+            const slippageCost = selectedSize * (slippageBps / 10000);
+            cost = {
+              slippageBps,
+              feeBps,
+              totalBps: slippageBps + feeBps,
+              totalCost: slippageCost + feeCost,
+              levelsUsed,
+              depthUsedUsd,
+              fillPct,
+            };
+          }
+        }
+        
+        return {
+          exchange: ex,
+          slippageBps: cost?.slippageBps ?? null,
+          feeBps: cost?.feeBps ?? null,
+          totalBps: cost?.totalBps ?? null,
+          totalCost: cost?.totalCost ?? null,
+          levelsUsed: cost?.levelsUsed ?? null,
+          depthUsedUsd: cost?.depthUsedUsd ?? null,
+          fillPct: cost?.fillPct ?? null,
+          class: ex.toLowerCase()
+        };
+      }).filter(c => c.totalBps !== null);
+
+      // Sort by total cost (ascending = best first)
+      costs.sort((a, b) => (a.totalBps ?? 999) - (b.totalBps ?? 999));
+
+      container.innerHTML = costs.map((item, idx) => {
+        const rank = idx + 1;
+        const isPartialFill = item.fillPct !== null && item.fillPct < 99;
+        
+        const rowClass = isPartialFill ? 'partial-row' : (rank === 1 ? 'best-row' : (rank === costs.length ? 'worst-row' : ''));
+        const valueClass = rank === 1 ? 'best-value' : (rank === costs.length ? 'worst-value' : '');
+        const partialBadge = isPartialFill ? '<span class="rank-badge partial">Partial</span>' : '';
+        
+        const fillPctClass = isPartialFill ? 'partial-fill' : '';
+        const fillDisplay = item.fillPct !== null 
+          ? (item.fillPct >= 99.9 ? '100%' : item.fillPct.toFixed(1) + '%')
+          : '--';
+        
+        const rankClass = rank === 1 ? 'rank-1' : (rank === costs.length ? 'rank-last' : '');
+        
+        return `
+          <tr class="exchange-row ${rowClass}">
+            <td class="rank-cell ${rankClass}">${rank}</td>
+            <td>
+              <div class="exchange-cell">
+                <div class="exchange-dot ${item.class}"></div>
+                ${item.exchange}${partialBadge}
+              </div>
+            </td>
+            <td class="cost-value">${item.slippageBps !== null ? item.slippageBps.toFixed(2) : '--'}</td>
+            <td class="cost-value">${item.feeBps !== null ? item.feeBps.toFixed(2) : '--'}</td>
+            <td class="total-value ${valueClass}">${item.totalBps !== null ? item.totalBps.toFixed(2) : '--'}</td>
+            <td class="total-value ${valueClass}">${item.totalCost !== null ? formatUsd(item.totalCost) : '--'}</td>
+            <td class="cost-value">${item.depthUsedUsd !== null ? formatSize(Math.round(item.depthUsedUsd)) : '--'}</td>
+            <td class="cost-value ${fillPctClass}">${fillDisplay}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function createSparkline(ex) {
+      const sparkData = sparklineHistory[ex] || [];
+      if (sparkData.length < 2) return '<svg class="sparkline"></svg>';
+
+      const w = 60, h = 20;
+      const max = Math.max(...sparkData, 0.01);
+      const min = Math.min(...sparkData);
+      const range = max - min || 1;
+
+      const points = sparkData.map((v, i) => {
+        const x = (i / (sparkData.length - 1)) * w;
+        const y = h - ((v - min) / range) * h;
+        return `${x},${y}`;
+      }).join(' ');
+
+      return `
+        <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <polyline class="sparkline-path ${ex.toLowerCase()}" points="${points}"/>
+        </svg>
+      `;
+    }
+
+    function renderLiveGrid() {
+      const container = document.getElementById('liveGrid');
+      if (!data?.current) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = exchanges.map(ex => {
+        const d = data.current[selectedCoin]?.[ex];
+        const depth = d?.depths?.[selectedBp] || 0;
+        const spread = d?.spread;
+        const exClass = ex.toLowerCase();
+        
+        return `
+          <div class="exchange-card">
+            <div class="exchange-header">
+              <div class="exchange-name">${ex}</div>
+              <div class="exchange-indicator ${exClass}"></div>
+            </div>
+            <div class="exchange-value">${formatNum(depth)}</div>
+            <div class="exchange-meta">
+              <div class="exchange-spread">${spread !== null ? spread.toFixed(2) + ' bps' : '--'}</div>
+              ${createSparkline(ex)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function render() {
+      if (!data) return;
+
+      renderHorizontalBars('depthBars', ex => average(history.depth[ex]));
+      renderHorizontalBars('spreadBars', ex => average(history.spread[ex]), ' bps');
+      renderCostTable();
+      renderLiveGrid();
+
+      document.getElementById('timestamp').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    function connect() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws = new WebSocket(`${protocol}//${window.location.host}`);
+      ws.onmessage = e => {
+        data = JSON.parse(e.data);
+        recordHistory();
+        render();
+      };
+      ws.onclose = () => setTimeout(connect, 2000);
+      ws.onerror = () => ws.close();
+    }
+
+    window.addEventListener('resize', render);
+    initTabs();
+    connect();
+  </script>
+</body>
+</html>
