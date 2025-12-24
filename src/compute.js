@@ -1,9 +1,5 @@
-// Basis point levels to calculate depth for
 const DEFAULT_BP_LEVELS = [1, 2, 3, 5, 10, 25, 50, 100];
 
-/**
- * Calculate best bid and best ask from order book
- */
 export function getTopOfBook(orderBook) {
   const { bids, asks } = orderBook;
 
@@ -16,9 +12,6 @@ export function getTopOfBook(orderBook) {
   return { bestBid, bestAsk, mid, spread, spreadBps };
 }
 
-/**
- * Calculate depth within a certain basis point range from mid price
- */
 export function calculateDepthAtBp(levels, mid, bp, side) {
   const bpDecimal = bp / 10000;
   const upperPrice = mid * (1 + bpDecimal);
@@ -42,9 +35,6 @@ export function calculateDepthAtBp(levels, mid, bp, side) {
   return { size: totalSize, notional: totalNotional };
 }
 
-/**
- * Compute depth analysis for an order book at specified bp levels
- */
 export function computeDepth(orderBook, bpLevels = DEFAULT_BP_LEVELS) {
   if (!orderBook) return null;
 
@@ -78,9 +68,6 @@ export function computeDepth(orderBook, bpLevels = DEFAULT_BP_LEVELS) {
   };
 }
 
-/**
- * Format number for display (compact notation for large numbers)
- */
 export function formatNumber(num, decimals = 2) {
   if (num === null || num === undefined) return '--';
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(decimals) + 'M';
@@ -88,9 +75,6 @@ export function formatNumber(num, decimals = 2) {
   return num.toFixed(decimals);
 }
 
-/**
- * Format USD value
- */
 export function formatUSD(num) {
   if (num === null || num === undefined) return '--';
   if (num >= 1_000_000) return '$' + (num / 1_000_000).toFixed(2) + 'M';

@@ -6,22 +6,19 @@ import {
 } from './exchanges/index.js';
 import { computeDepth, formatNumber } from './compute.js';
 
-// ============ CONFIGURATION ============
 const COINS = ['BTC', 'ETH', 'SOL'];
 const BP_LEVELS = [1, 2, 3, 5, 10];
 const UPDATE_INTERVAL = 1000;
 
-// Enable/disable exchanges (set to true when implemented)
 const ENABLED_EXCHANGES = {
   Hyperliquid: true,
   Lighter: true,
   EdgeX: true,
   Paradex: true,
 };
-// =======================================
 
 const exchanges = new Map();
-const depthData = new Map(); // exchange -> coin -> depthData
+const depthData = new Map();
 
 async function initExchanges() {
   const exchangeClasses = {
@@ -82,12 +79,10 @@ function displayComparison() {
     console.log(`\n  ${coin}`);
     console.log('  ' + '─'.repeat(76));
 
-    // Header row
     const header = ['  BP'].concat(enabledExchanges.map((e) => e.padStart(14)));
     console.log(header.join(' │ '));
     console.log('  ' + '─'.repeat(76));
 
-    // Data rows for each BP level
     for (const bp of BP_LEVELS) {
       const row = [`  ${String(bp).padStart(2)}`];
 
@@ -97,7 +92,6 @@ function displayComparison() {
         const depth = coinData?.depths?.[bp];
 
         if (depth) {
-          // Show raw token amount
           row.push(formatNumber(depth.totalSize, 4).padStart(14));
         } else {
           row.push('--'.padStart(14));
@@ -107,7 +101,6 @@ function displayComparison() {
       console.log(row.join(' │ '));
     }
 
-    // Show spread for context
     console.log('  ' + '─'.repeat(76));
     const spreadRow = ['  Spread'];
     for (const exchangeName of enabledExchanges) {

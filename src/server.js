@@ -15,10 +15,9 @@ import { computeDepth } from './compute.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Configuration
 const COINS = ['BTC', 'ETH', 'SOL'];
 const BP_LEVELS = [1, 2, 3];
-const TRADE_SIZES = [100, 10000, 1000000]; // $100, $10K, $1M
+const TRADE_SIZES = [100, 10000, 1000000];
 const PORT = process.env.PORT || 3000;
 const HISTORY_LENGTH = 30;
 
@@ -29,12 +28,11 @@ const ENABLED_EXCHANGES = {
   Paradex: true,
 };
 
-// Fee rates (taker fees in decimal)
 const FEE_RATES = {
-  Hyperliquid: 0.00045, // 4.5 bps
-  Lighter: 0,           // 0 fees
-  EdgeX: 0.00038,       // 3.8 bps
-  Paradex: 0,           // 0 bps
+  Hyperliquid: 0.00045,
+  Lighter: 0,
+  EdgeX: 0.00038,
+  Paradex: 0,
 };
 
 const exchanges = new Map();
@@ -42,7 +40,6 @@ const depthData = new Map();
 const orderBooks = new Map();
 const clients = new Set();
 
-// History for depth, spread, and slippage
 const history = {};
 const slippageHistory = {};
 
@@ -63,7 +60,6 @@ function initHistory() {
     }
   }
 
-  // Initialize slippage history per exchange/coin/tradeSize
   for (const exchange of Object.keys(ENABLED_EXCHANGES)) {
     slippageHistory[exchange] = {};
     for (const coin of COINS) {
@@ -113,7 +109,6 @@ function recordHistory() {
     }
   }
 
-  // Record slippage for each exchange/coin/trade size (buy + sell averaged)
   for (const [exchangeName] of exchanges) {
     for (const coin of COINS) {
       const ob = orderBooks.get(exchangeName)?.get(coin);
@@ -122,7 +117,6 @@ function recordHistory() {
         const buyResult = calculateSlippageDetailed(ob, size, 'buy');
         const sellResult = calculateSlippageDetailed(ob, size, 'sell');
         
-        // Average buy and sell
         let avgSlippageBps = null;
         let avgEffectiveSpreadBps = null;
         let avgLevelsUsed = null;
@@ -169,7 +163,6 @@ function recordHistory() {
   }
 }
 
-// Calculate slippage with detailed metrics
 function calculateSlippageDetailed(orderBook, tradeSizeUsd, side = 'buy') {
   if (!orderBook || !orderBook.bids?.length || !orderBook.asks?.length) {
     return null;
@@ -215,7 +208,6 @@ function calculateSlippageDetailed(orderBook, tradeSizeUsd, side = 'buy') {
   
   const slippageBps = Math.abs(slippagePct * 100);
   
-  // Effective spread = price range traversed (best to worst)
   const effectiveSpreadPct = Math.abs((worstPrice - bestPrice) / bestPrice) * 100;
   const effectiveSpreadBps = effectiveSpreadPct * 100;
 
@@ -235,14 +227,12 @@ function calculateSlippageDetailed(orderBook, tradeSizeUsd, side = 'buy') {
   };
 }
 
-// Calculate average of array, ignoring nulls
 function avg(arr) {
   const valid = arr.filter(v => v !== null && !isNaN(v));
   if (valid.length === 0) return null;
   return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
-// Calculate total execution cost with averaged slippage
 function calculateExecutionCost(exchangeName, coin, tradeSizeUsd) {
   const hist = slippageHistory[exchangeName]?.[coin]?.[tradeSizeUsd];
   if (!hist) return null;
@@ -360,7 +350,6 @@ function getSnapshot() {
         snapshot.current[coin][exchangeName].depths[bp] = coinData?.depths?.[bp]?.totalSize || 0;
       }
 
-      // Calculate execution costs with averaged slippage
       snapshot.executionCosts[coin][exchangeName] = {};
       for (const size of TRADE_SIZES) {
         snapshot.executionCosts[coin][exchangeName][size] = calculateExecutionCost(exchangeName, coin, size);

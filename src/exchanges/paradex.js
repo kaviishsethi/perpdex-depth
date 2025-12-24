@@ -3,7 +3,6 @@ import { BaseExchange } from './base.js';
 
 const WS_URI = 'wss://ws.api.prod.paradex.trade/v1';
 
-// Paradex market symbols
 const MARKET_SYMBOLS = {
   BTC: 'BTC-USD-PERP',
   ETH: 'ETH-USD-PERP',
@@ -52,7 +51,6 @@ export class ParadexExchange extends BaseExchange {
     const market = MARKET_SYMBOLS[coin];
     if (!market) return;
 
-    // Subscribe to order book snapshot at depth 15, 100ms refresh
     const sub = {
       jsonrpc: '2.0',
       method: 'subscribe',
@@ -68,7 +66,6 @@ export class ParadexExchange extends BaseExchange {
     try {
       const msg = JSON.parse(rawData.toString());
 
-      // Handle subscription response
       if (msg.method === 'subscription' && msg.params?.channel?.startsWith('order_book.')) {
         this.handleOrderBookUpdate(msg);
       }
@@ -82,22 +79,19 @@ export class ParadexExchange extends BaseExchange {
 
     if (!data) return;
 
-    // Extract market from channel: "order_book.BTC-USD-PERP.snapshot@15@100ms"
     const marketMatch = channel.match(/order_book\.([^.]+)\./);
     if (!marketMatch) return;
     const market = marketMatch[1];
 
-    // Find coin from market
     let coin = null;
     for (const [c, m] of Object.entries(MARKET_SYMBOLS)) {
       if (m === market) { coin = c; break; }
     }
     if (!coin) return;
 
-    const updateType = data.update_type; // 's' = snapshot, 'd' = delta
+    const updateType = data.update_type;
 
     if (updateType === 's') {
-      // Snapshot - rebuild from inserts
       const bids = [];
       const asks = [];
 
@@ -114,11 +108,9 @@ export class ParadexExchange extends BaseExchange {
       this.orderBookSnapshots.set(coin, orderBook);
       this.updateOrderBook(coin, { ...orderBook, timestamp: Date.now() });
     } else {
-      // Delta update
       const current = this.orderBookSnapshots.get(coin);
       if (!current) return;
 
-      // Handle deletes
       for (const item of data.deletes || []) {
         const price = parseFloat(item.price);
         const levels = item.side === 'BUY' ? current.bids : current.asks;
@@ -126,7 +118,6 @@ export class ParadexExchange extends BaseExchange {
         if (idx !== -1) levels.splice(idx, 1);
       }
 
-      // Handle updates
       for (const item of data.updates || []) {
         const price = parseFloat(item.price);
         const size = parseFloat(item.size);
@@ -135,7 +126,6 @@ export class ParadexExchange extends BaseExchange {
         if (idx !== -1) levels[idx].size = size;
       }
 
-      // Handle inserts
       for (const item of data.inserts || []) {
         const price = parseFloat(item.price);
         const size = parseFloat(item.size);
